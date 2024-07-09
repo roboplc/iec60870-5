@@ -226,7 +226,11 @@ impl Telegram104_S {
 
 /// U-frame telegram
 #[derive(Debug, Clone)]
-#[allow(non_camel_case_types, clippy::module_name_repetitions)]
+#[allow(
+    non_camel_case_types,
+    clippy::module_name_repetitions,
+    clippy::struct_excessive_bools
+)]
 pub struct Telegram104_U {
     test: bool,
     start_dt: bool,

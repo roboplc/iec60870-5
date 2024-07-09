@@ -325,7 +325,7 @@ impl Telegram101 {
             fcv_dfc: control_buf[0] & 0b0001_0000 != 0,
             function_code: control_buf[0] & 0b0000_1111,
             link_address,
-            data_type: data_type,
+            data_type,
             test,
             negative,
             cot: Some(cot),

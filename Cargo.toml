@@ -1,12 +1,12 @@
 [package]
 name = "iec60870-5"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 authors = ["Serhij S. <div@altertech.com>"]
 license-file = "LICENSE.md"
 description = "IEC 60870-5 101/104 protocol implementation"
 repository = "https://github.com/roboplc/iec60870-5"
-keywords = ["iec", "60870-5", "plc", "energy", "industrial"]
+keywords = ["iec", "60870-5", "scada", "plc", "industrial"]
 readme = "README.md"
 autoexamples = false
 

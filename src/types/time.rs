@@ -423,7 +423,7 @@ mod tests {
 
     #[test]
     fn test_cp56time2a_from_bytes() {
-        let bytes: [u8; 7] = [0xD5, 0xDD, 0x22, 0x92, 0b010_11110, 0x07, 0x18];
+        let bytes: [u8; 7] = [0xD5, 0xDD, 0x22, 0x92, 0b0101_1110, 0x07, 0x18];
         let cp56time2a: CP56Time2a = bytes.into();
         assert_eq!(cp56time2a.ms, 56789);
         assert_eq!(cp56time2a.min, 34);
@@ -450,6 +450,6 @@ mod tests {
             dow: 2.into(),
         };
         let bytes: [u8; 7] = cp56time2a.into();
-        assert_eq!(bytes, [0xD5, 0xDD, 0x22, 0x92, 0b010_11110, 0x07, 0x18]);
+        assert_eq!(bytes, [0xD5, 0xDD, 0x22, 0x92, 0b0101_1110, 0x07, 0x18]);
     }
 }
