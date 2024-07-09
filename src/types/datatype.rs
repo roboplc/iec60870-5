@@ -256,7 +256,7 @@ impl From<M_SP_TA_1> for DataBuffer {
     }
 }
 
-/// Double-point information
+/// Double point information
 #[derive(Debug, Clone, Eq, PartialEq, Default)]
 pub struct M_DP_NA_1 {
     /// Double point information with quality descriptor
@@ -279,7 +279,7 @@ impl From<M_DP_NA_1> for DataBuffer {
     }
 }
 
-/// Double-point information with time tag
+/// Double point information with CP24Time2a time tag
 #[derive(Debug, Clone, Eq, PartialEq, Default)]
 pub struct M_DP_TA_1 {
     /// Double point information with quality descriptor
@@ -1206,7 +1206,7 @@ impl From<M_SP_TB_1> for DataBuffer {
     }
 }
 
-/// Double point information with time tag
+/// Double point information with CP56Time2a time tag
 #[derive(Debug, Clone, Eq, PartialEq, Default)]
 pub struct M_DP_TB_1 {
     /// Double point information with quality descriptor
