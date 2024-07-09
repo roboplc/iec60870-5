@@ -106,7 +106,7 @@ if let Telegram104::I(i) = telegram {
 
 # Troubleshooting
 
-As IEEE 60870-5 is a complex standard, the hardware/software vendors usually do
+As IEC 60870-5 is a complex standard, the hardware/software vendors usually do
 not implement it it full, some parts may require additional
 development/workarounds.
 
