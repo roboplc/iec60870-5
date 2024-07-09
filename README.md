@@ -123,5 +123,5 @@ require require keep-alive frames. Such can be generated either using IEC
 use iec60870_5::telegram104::Telegram104;
 
 let telegram = Telegram104::new_test();
-// write the telegram to the target
+// Write the telegram to the target
 ```
