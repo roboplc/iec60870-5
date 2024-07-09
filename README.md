@@ -1,6 +1,6 @@
 <h2>
   IEC 60870-5 101/104 Rust protocol implementation
-  <a href="https://crates.io/crates/iec60870-5"><img alt="crates.io page" src="https://img.shields.io/crates/v/roboplc-io-ads.svg"></img></a>
+  <a href="https://crates.io/crates/iec60870-5"><img alt="crates.io page" src="https://img.shields.io/crates/v/iec60870-5.svg"></img></a>
   <a href="https://docs.rs/iec60870-5"><img alt="docs.rs page" src="https://docs.rs/roboplc-io-ads/badge.svg"></img></a>
 </h2>
 
