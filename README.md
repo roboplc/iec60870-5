@@ -96,7 +96,7 @@ if let Telegram104::I(i) = telegram {
             // Decode MP_EP_TA_1 information object value from the raw IOU buffer
             let val: M_EP_TA_1 = iou.value().into();
             // Convert the time tag to a timestamp
-            let dt = Timestamp::try_from(val.time);
+            let dt = Timestamp::try_from(val.time).unwrap();
             // Output the event state and the timestamp
             dbg!(val.sep.es, dt);
         }
@@ -106,18 +106,18 @@ if let Telegram104::I(i) = telegram {
 
 # Troubleshooting
 
-As IEC 60870-5 is a complex standard, the hardware/software vendors usually do
-not implement it it full, some parts may require additional
+* As IEC 60870-5 is a complex standard, 3rd party hardware/software vendors
+usually do not implement it it full, some functionality may require additional
 development/workarounds.
 
-The library has been fully tested in pair with [Beckhoff TwinCAT 3
-TF6500](https://www.beckhoff.com/en-en/products/automation/twincat/tfxxxx-twincat-3-functions/tf6xxx-connectivity/tf6500.html)
+* The library has been fully tested in pair with [Beckhoff TwinCAT 3
+  TF6500](https://www.beckhoff.com/en-en/products/automation/twincat/tfxxxx-twincat-3-functions/tf6xxx-connectivity/tf6500.html)
 as well as with certain embedded implementations, used in the European Union
 power grids.
 
-The most common problem is that the majority of the IEC 60870-5 104 servers
-require require keep-alive frames. Such can be generated either using IEC
-60870-5 104 S-Frames, or test U-frames out-of-the-box:
+* The most common problem is that the majority of the IEC 60870-5 104 servers
+  require require keep-alive frames. Such can be generated either using IEC
+  60870-5 104 S-Frames, or test U-frames out-of-the-box:
 
 ```rust
 use iec60870_5::telegram104::Telegram104;
