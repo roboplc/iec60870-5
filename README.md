@@ -126,6 +126,11 @@ let telegram = Telegram104::new_test();
 // Write the telegram to the target
 ```
 
-# Copyrights
+## About the authors
 
-(c) [Bohemia Automation Ltd.](https://www.bohemia-automation.com).
+[Bohemia Automation](https://www.bohemia-automation.com) /
+[Altertech](https://www.altertech.com) is a group of companies with 15+ years
+of experience in the enterprise automation and industrial IoT. Our setups
+include power plants, factories and urban infrastructure. Largest of them have
+1M+ sensors and controlled devices and the bar raises higher and higher every
+day.
