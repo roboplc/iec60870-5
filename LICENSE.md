@@ -24,7 +24,7 @@ furnished to do so, subject to the following conditions:
 2. The Software may be used for testing and educational purposes without a
    purchased license.
 
-3. If used in third party products with the license purchased, the third party
+3. If used in a third party product with the license purchased, the third party
    product IEC 60870-5 functionality description/documentation must contain a
    reference to the software vendor, Bohemia Automation and the effective
    license conditions.
