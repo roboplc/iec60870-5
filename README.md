@@ -125,3 +125,7 @@ use iec60870_5::telegram104::Telegram104;
 let telegram = Telegram104::new_test();
 // Write the telegram to the target
 ```
+
+# Copyrights
+
+(c) [Bohemia Automation Ltd.](https://www.bohemia-automation.com).
