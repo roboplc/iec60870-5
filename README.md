@@ -11,7 +11,7 @@ for telecontrol, teleprotection, and associated telecommunications for electric
 power systems, widely used in the European Union, the United Kingdom and other
 locations.
 
-The crate provides a fully Rust-safe protocol-agnostic implementation for IEC
+The crate provides a fully Rust-safe transport-agnostic implementation for IEC
 60870-5 101/104 telegrams and common data types. The library contains almost
 the complete set of types and instruments required to easily write own client
 or server, including time conversion between Rust and IEC 60870-5 formats.
@@ -116,8 +116,8 @@ as well as with certain embedded implementations, used in the European Union
 power grids.
 
 * The most common problem is that the majority of the IEC 60870-5 104 servers
-  require require keep-alive frames. Such can be generated either using IEC
-  60870-5 104 S-Frames, or test U-frames out-of-the-box:
+  require keep-alive frames. Such can be generated either using IEC 60870-5 104
+  S-Frames, or test U-frames out-of-the-box:
 
 ```rust
 use iec60870_5::telegram104::Telegram104;
