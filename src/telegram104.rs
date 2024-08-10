@@ -288,6 +288,11 @@ impl Telegram104_U {
             con: false,
         }
     }
+    /// Sets confirmation flag
+    pub fn with_con(mut self, con: bool) -> Self {
+        self.con = con;
+        self
+    }
     fn from_control_buf(control_buf: [u8; 4]) -> Self {
         let control = control_buf[0];
         let mut con = false;
