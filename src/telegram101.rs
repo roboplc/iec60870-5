@@ -8,6 +8,8 @@ use crate::{
 const IEC_HEADER: u8 = 0x68;
 const IEC_HEADER_FIXED: u8 = 0x10;
 const IEC_STOP: u8 = 0x16;
+const IEC_ACK_POSITIVE: u8 = 0xE5;
+const IEC_ACK_NEGATIVE: u8 = 0xA2;
 
 /// IEC 60870-5-101 telegram configuration (used with each telegram)
 /// Defaults: link_address_len = 1, originator_address_len = 1, adsu_address_len = 2,
@@ -92,7 +94,8 @@ pub struct Telegram101 {
     adsu: u16,
     iou: Vec<Iou>,
     sequental: bool,
-    config: Config,
+    config: Option<Config>,
+    ack_only: bool,
 }
 
 impl Telegram101 {
@@ -112,7 +115,8 @@ impl Telegram101 {
             adsu,
             iou: <_>::default(),
             sequental: false,
-            config,
+            config: Some(config),
+            ack_only: false,
         }
     }
     /// Create a new fixed length telegram
@@ -131,7 +135,28 @@ impl Telegram101 {
             adsu: 0,
             iou: <_>::default(),
             sequental: false,
-            config,
+            config: Some(config),
+            ack_only: false,
+        }
+    }
+    /// Create a new positive ack reply (single-character data)
+    pub fn new_ack(positive: bool) -> Self {
+        Self {
+            prm: false,
+            fcb_acd: false,
+            fcv_dfc: false,
+            function_code: 0,
+            link_address: 0,
+            data_type: DataType::ASDU_TYPEUNDEF,
+            test: false,
+            negative: !positive,
+            cot: None,
+            originator: 0,
+            adsu: 0,
+            iou: <_>::default(),
+            sequental: false,
+            config: None,
+            ack_only: true,
         }
     }
     /// Is this a fixed length telegram
@@ -187,6 +212,10 @@ impl Telegram101 {
     /// Negative=True if negative confirmation
     pub fn is_negative(&self) -> bool {
         self.negative
+    }
+    /// Is this not a full IEC telegram but ack only (single-character data)
+    pub fn is_ack_only(&self) -> bool {
+        self.ack_only
     }
     /// Is the data sequental
     pub fn is_sequental(&self) -> bool {
@@ -246,7 +275,7 @@ impl Telegram101 {
     where
         R: Read,
     {
-        let mut buf = [0; 4];
+        let mut buf = [0; 3];
         reader.read_exact(&mut buf)?;
         let length = buf[0];
         if length != buf[1] {
@@ -255,18 +284,21 @@ impl Telegram101 {
         if length > 253 {
             return Err(Error::invalid_data("telegram too long"));
         }
+        if length < 1 {
+            return Err(Error::invalid_data("telegram too short"));
+        }
         if buf[2] != IEC_HEADER {
             return Err(Error::invalid_data("invalid header"));
         }
         let mut buf = vec![0u8; usize::from(length)];
         reader.read_exact(&mut buf)?;
-        let mut tail = [0; 2];
+        let mut tail = [0u8; 2];
         reader.read_exact(&mut tail)?;
-        if tail[0] != buf_checksum(&buf) {
-            return Err(Error::invalid_data("invalid checksum"));
-        }
         if tail[1] != IEC_STOP {
             return Err(Error::invalid_data("invalid stop"));
+        }
+        if tail[0] != buf_checksum(&buf) {
+            return Err(Error::invalid_data("invalid checksum"));
         }
         let mut frame = Cursor::new(buf);
         let mut control_buf = [0; 1];
@@ -302,7 +334,7 @@ impl Telegram101 {
         for i in 0..iou_len {
             let address = if i == 0 || !sequental {
                 let mut address_buf = vec![0; usize::from(config.iou_address_len)];
-                reader.read_exact(&mut address_buf)?;
+                frame.read_exact(&mut address_buf)?;
                 address_buf.resize(4, 0);
                 first_address = u32::from_le_bytes(address_buf.try_into().unwrap());
                 first_address
@@ -310,7 +342,7 @@ impl Telegram101 {
                 first_address + u32::try_from(i).unwrap()
             };
             let mut value = vec![0u8; data_type.size()];
-            reader.read_exact(&mut value)?;
+            frame.read_exact(&mut value)?;
 
             value.resize(MAX_IEC_DATA_LEN, 0);
 
@@ -333,7 +365,8 @@ impl Telegram101 {
             adsu,
             iou,
             sequental,
-            config,
+            config: Some(config),
+            ack_only: false,
         })
     }
     fn read_fixed_length<R>(mut reader: R, config: Config) -> Result<Self, Error>
@@ -368,7 +401,8 @@ impl Telegram101 {
             adsu: 0,
             iou: <_>::default(),
             sequental: false,
-            config,
+            config: Some(config),
+            ack_only: false,
         })
     }
     /// Read a telegram from a reader
@@ -381,6 +415,8 @@ impl Telegram101 {
         match frame_header[0] {
             IEC_HEADER => Self::read_variable_length(reader, config),
             IEC_HEADER_FIXED => Self::read_fixed_length(reader, config),
+            IEC_ACK_POSITIVE => Ok(Self::new_ack(true)),
+            IEC_ACK_NEGATIVE => Ok(Self::new_ack(false)),
             _ => Err(Error::invalid_data("invalid header")),
         }
     }
@@ -409,30 +445,37 @@ impl Telegram101 {
     where
         W: Write,
     {
+        if self.ack_only {
+            if self.negative {
+                writer.write_all(&[IEC_ACK_NEGATIVE])?;
+            } else {
+                writer.write_all(&[IEC_ACK_POSITIVE])?;
+            }
+            return Ok(());
+        }
+        let config = self.config.unwrap_or_default();
         if let Some(cot) = self.cot {
             // variable length
             if self.iou.len() > usize::from(u8::MAX) {
                 return Err(Error::invalid_data("too many information objects"));
             }
             let mut capacity = 1 // control field
-            + usize::from(self.config.link_address_len) // link address
+            + usize::from(config.link_address_len) // link address
             + 1 // data_type
             + 1 // iou length
             + 1 // cot
-            + usize::from(self.config.originator_address_len) // originator
-            + usize::from(self.config.adsu_address_len) // adsu
+            + usize::from(config.originator_address_len) // originator
+            + usize::from(config.adsu_address_len) // adsu
             ;
             let kind_size = self.data_type.size();
             if self.sequental {
-                capacity += usize::from(self.config.iou_address_len) + kind_size * self.iou.len();
+                capacity += usize::from(config.iou_address_len) + kind_size * self.iou.len();
             } else {
-                capacity += (usize::from(self.config.iou_address_len) + kind_size) * self.iou.len();
+                capacity += (usize::from(config.iou_address_len) + kind_size) * self.iou.len();
             }
             let mut buf = Vec::<u8>::with_capacity(capacity);
             buf.push(self.control_field());
-            buf.extend(
-                &self.link_address.to_le_bytes()[..usize::from(self.config.link_address_len)],
-            );
+            buf.extend(&self.link_address.to_le_bytes()[..usize::from(config.link_address_len)]);
             buf.push(self.data_type as u8);
             let mut iou_len = u8::try_from(self.iou.len()).unwrap();
             if self.sequental {
@@ -444,14 +487,12 @@ impl Telegram101 {
                 | (if self.test { 0b1000_0000 } else { 0 });
             buf.push(cot_byte);
             buf.extend(
-                &self.originator.to_le_bytes()[..usize::from(self.config.originator_address_len)],
+                &self.originator.to_le_bytes()[..usize::from(config.originator_address_len)],
             );
-            buf.extend(&self.adsu.to_le_bytes()[..usize::from(self.config.adsu_address_len)]);
+            buf.extend(&self.adsu.to_le_bytes()[..usize::from(config.adsu_address_len)]);
             for (n, iou) in self.iou.iter().enumerate() {
                 if n == 0 || !self.sequental {
-                    buf.extend(
-                        &iou.address.to_le_bytes()[..usize::from(self.config.iou_address_len)],
-                    );
+                    buf.extend(&iou.address.to_le_bytes()[..usize::from(config.iou_address_len)]);
                 }
                 buf.extend(&iou.value[..kind_size]);
             }
@@ -469,11 +510,9 @@ impl Telegram101 {
             writer.write_all(&[buf_checksum(&buf)])?;
         } else {
             // fixed length
-            let mut buf = Vec::<u8>::with_capacity(1 + usize::from(self.config.link_address_len));
+            let mut buf = Vec::<u8>::with_capacity(1 + usize::from(config.link_address_len));
             buf.push(self.control_field());
-            buf.extend(
-                &self.link_address.to_le_bytes()[..usize::from(self.config.link_address_len)],
-            );
+            buf.extend(&self.link_address.to_le_bytes()[..usize::from(config.link_address_len)]);
             writer.write_all(&[IEC_HEADER_FIXED])?;
             writer.write_all(&buf)?;
             writer.write_all(&[buf_checksum(&buf)])?;
