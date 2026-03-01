@@ -26,16 +26,16 @@ impl ChatSequenceCounter {
     /// Manually increments the RX counter
     pub fn increment_rx(&mut self) -> u16 {
         self.rx += 1;
-        if self.rx >= FRAME_COUNTER_MAX {
-            self.rx = 1;
+        if self.rx > FRAME_COUNTER_MAX {
+            self.rx = 0;
         }
         self.rx
     }
     /// Manually increments the TX counter
     pub fn increment_tx(&mut self) -> u16 {
         self.tx += 1;
-        if self.tx >= FRAME_COUNTER_MAX {
-            self.tx = 1;
+        if self.tx > FRAME_COUNTER_MAX {
+            self.tx = 0;
         }
         self.tx
     }
@@ -651,5 +651,69 @@ impl Telegram104_I {
     /// Convert to Telegram104
     pub fn into_telegram104(self) -> Telegram104 {
         self.into()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{ChatSequenceCounter, FRAME_COUNTER_MAX};
+
+    #[test]
+    fn chat_sequence_counter_new() {
+        let c = ChatSequenceCounter::new();
+        assert_eq!(c.current_tx(), 0);
+        assert_eq!(c.current_rx(), 0);
+    }
+
+    #[test]
+    fn chat_sequence_counter_increment_tx_rx() {
+        let mut c = ChatSequenceCounter::new();
+        assert_eq!(c.increment_tx(), 1);
+        assert_eq!(c.current_tx(), 1);
+        assert_eq!(c.increment_tx(), 2);
+        assert_eq!(c.current_tx(), 2);
+        assert_eq!(c.increment_rx(), 1);
+        assert_eq!(c.current_rx(), 1);
+        assert_eq!(c.increment_rx(), 2);
+        assert_eq!(c.current_rx(), 2);
+    }
+
+    #[test]
+    fn chat_sequence_counter_reset() {
+        let mut c = ChatSequenceCounter::new();
+        c.increment_tx();
+        c.increment_tx();
+        c.increment_rx();
+        c.reset();
+        assert_eq!(c.current_tx(), 0);
+        assert_eq!(c.current_rx(), 0);
+        assert_eq!(c.increment_tx(), 1);
+        assert_eq!(c.increment_rx(), 1);
+    }
+
+    #[test]
+    fn chat_sequence_counter_wrap_tx() {
+        let mut c = ChatSequenceCounter::new();
+        for _ in 0..FRAME_COUNTER_MAX {
+            c.increment_tx();
+        }
+        assert_eq!(c.current_tx(), FRAME_COUNTER_MAX);
+        c.increment_tx();
+        assert_eq!(c.current_tx(), 0);
+        assert_eq!(c.increment_tx(), 1);
+        assert_eq!(c.current_tx(), 1);
+    }
+
+    #[test]
+    fn chat_sequence_counter_wrap_rx() {
+        let mut c = ChatSequenceCounter::new();
+        for _ in 0..FRAME_COUNTER_MAX {
+            c.increment_rx();
+        }
+        assert_eq!(c.current_rx(), FRAME_COUNTER_MAX);
+        c.increment_rx();
+        assert_eq!(c.current_rx(), 0);
+        assert_eq!(c.increment_rx(), 1);
+        assert_eq!(c.current_rx(), 1);
     }
 }

@@ -48,7 +48,7 @@ use iec60870_5::types::COT;
 use iec60870_5::telegram104::{ChatSequenceCounter, Telegram104, Telegram104_I};
 
 // To communicate with the server, the client must have a chat sequence counter
-let chat_sequence_counter = ChatSequenceCounter::new();
+let mut chat_sequence_counter = ChatSequenceCounter::new();
 
 let mut telegram_i: Telegram104_I = Telegram104_I::new(
     DataType::C_RC_TA_1, // Data type, regulating step command with CP56Time2a time tag
@@ -67,7 +67,7 @@ telegram_i.append_iou(
     },
 );
 let mut telegram: Telegram104 = telegram_i.into();
-telegram.chat_sequence_apply_outgoing(&chat_sequence_counter);
+telegram.chat_sequence_apply_outgoing(&mut chat_sequence_counter);
 // The telegram is ready to be sent in any way
 let mut buffer = std::io::Cursor::new(Vec::new());
 telegram.write(&mut buffer).unwrap();
@@ -82,12 +82,12 @@ use iec60870_5::telegram104::{ChatSequenceCounter, Telegram104};
 use iec60870_5::types::datatype::{DataType, M_EP_TA_1};
 
 // For strict servers, the client must have a chat sequence counter
-let chat_sequence_counter = ChatSequenceCounter::new();
+let mut chat_sequence_counter = ChatSequenceCounter::new();
 
 // Consider that the buffer contains a valid telegram
 let mut buffer = std::io::Cursor::new(Vec::new());
 let telegram = Telegram104::read(&mut buffer).unwrap();
-telegram.chat_sequence_validate_incoming(&chat_sequence_counter).unwrap();
+telegram.chat_sequence_validate_incoming(&mut chat_sequence_counter).unwrap();
 if let Telegram104::I(i) = telegram {
     // This is an I-frame
     if i.data_type() == DataType::M_EP_TA_1 {
