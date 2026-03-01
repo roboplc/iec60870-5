@@ -1,6 +1,6 @@
 [package]
 name = "iec60870-5"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2024"
 authors = ["Serhij S. <div@altertech.com>"]
 license-file = "LICENSE.md"
