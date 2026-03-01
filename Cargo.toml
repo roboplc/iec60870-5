@@ -1,7 +1,7 @@
 [package]
 name = "iec60870-5"
-version = "0.1.5"
-edition = "2021"
+version = "0.2.0"
+edition = "2024"
 authors = ["Serhij S. <div@altertech.com>"]
 license-file = "LICENSE.md"
 description = "IEC 60870-5 101/104 protocol implementation"
@@ -11,6 +11,6 @@ readme = "README.md"
 autoexamples = false
 
 [dependencies]
-bma-ts = { version = "0.1.13", features = ["chrono"] }
+bma-ts = { version = "0.2.5", features = ["chrono"] }
 chrono = "0.4.38"
 thiserror = "1.0.61"

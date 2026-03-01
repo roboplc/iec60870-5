@@ -3,8 +3,8 @@
 use crate::Error;
 
 use super::{
-    time::{CP16Time2a, CP24Time2a, CP56Time2a},
     DataBuffer,
+    time::{CP16Time2a, CP24Time2a, CP56Time2a},
 };
 
 /// Single point information
@@ -20,11 +20,7 @@ pub enum SPI {
 
 impl From<bool> for SPI {
     fn from(value: bool) -> Self {
-        if value {
-            SPI::On
-        } else {
-            SPI::Off
-        }
+        if value { SPI::On } else { SPI::Off }
     }
 }
 
@@ -63,11 +59,7 @@ pub enum DPI {
 
 impl From<bool> for DPI {
     fn from(value: bool) -> Self {
-        if value {
-            DPI::On
-        } else {
-            DPI::Off
-        }
+        if value { DPI::On } else { DPI::Off }
     }
 }
 

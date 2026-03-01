@@ -1,31 +1,18 @@
-use std::{
-    io::{Cursor, Read, Write},
-    sync::{
-        atomic::{AtomicU16, Ordering},
-        Arc,
-    },
-};
+use std::io::{Cursor, Read, Write};
 
 use crate::{
-    types::{datatype::DataType, DataBuffer, Iou, COT, MAX_IEC_DATA_LEN},
     Error,
+    types::{COT, DataBuffer, Iou, MAX_IEC_DATA_LEN, datatype::DataType},
 };
 
 const IEC_HEADER: u8 = 0x68;
 const FRAME_COUNTER_MAX: u16 = 32767;
 
-/// Chat sequence counter. Important: despite of providing all methods in a thread-safe manner by
-/// default, the counter must be still covered with a mutex or a similar synchronization primitive
-/// in a multi-threaded environment.
-#[derive(Default, Debug, Clone)]
-pub struct ChatSequenceCounter {
-    inner: Arc<ChatSequenceCounterInner>,
-}
-
+/// Chat sequence counter
 #[derive(Default, Debug)]
-struct ChatSequenceCounterInner {
-    tx: AtomicU16,
-    rx: AtomicU16,
+pub struct ChatSequenceCounter {
+    tx: u16,
+    rx: u16,
 }
 
 impl ChatSequenceCounter {
@@ -37,35 +24,33 @@ impl ChatSequenceCounter {
 
 impl ChatSequenceCounter {
     /// Manually increments the RX counter
-    pub fn increment_rx(&self) -> u16 {
-        let rx = self.inner.rx.fetch_add(1, Ordering::Relaxed);
-        if rx >= FRAME_COUNTER_MAX {
-            self.inner.rx.store(0, Ordering::Relaxed);
+    pub fn increment_rx(&mut self) -> u16 {
+        self.rx += 1;
+        if self.rx >= FRAME_COUNTER_MAX {
+            self.rx = 1;
         }
-        rx + 1
+        self.rx
     }
     /// Manually increments the TX counter
-    pub fn increment_tx(&self) -> u16 {
-        let tx = self.inner.tx.fetch_add(1, Ordering::Relaxed);
-        if tx >= FRAME_COUNTER_MAX {
-            self.inner.tx.store(0, Ordering::Relaxed);
-        } else {
-            self.inner.tx.store(tx + 1, Ordering::Relaxed);
+    pub fn increment_tx(&mut self) -> u16 {
+        self.tx += 1;
+        if self.tx >= FRAME_COUNTER_MAX {
+            self.tx = 1;
         }
-        tx + 1
+        self.tx
     }
     /// Returns the current TX counter value
     pub fn current_tx(&self) -> u16 {
-        self.inner.tx.load(Ordering::Relaxed)
+        self.tx
     }
     /// Returns the current RX counter value
     pub fn current_rx(&self) -> u16 {
-        self.inner.rx.load(Ordering::Relaxed)
+        self.rx
     }
     /// Resets the TX and RX counters to 0
-    pub fn reset(&self) {
-        self.inner.tx.store(0, Ordering::Relaxed);
-        self.inner.rx.store(0, Ordering::Relaxed);
+    pub fn reset(&mut self) {
+        self.tx = 0;
+        self.rx = 0;
     }
 }
 
@@ -83,7 +68,7 @@ pub enum Telegram104 {
 impl Telegram104 {
     /// Applies the counter values to the outgoing telegram send/receive sequence numbers and
     /// increments the send sequence number if required
-    pub fn chat_sequence_apply_outgoing(&mut self, counter: &ChatSequenceCounter) {
+    pub fn chat_sequence_apply_outgoing(&mut self, counter: &mut ChatSequenceCounter) {
         match self {
             Self::U(_) => {}
             Self::S(s) => s.chat_sequence_apply_outgoing(counter),
@@ -94,7 +79,7 @@ impl Telegram104 {
     /// sequence number if required
     pub fn chat_sequence_validate_incoming(
         &self,
-        counter: &ChatSequenceCounter,
+        counter: &mut ChatSequenceCounter,
     ) -> Result<(), Error> {
         match self {
             Self::U(_) => Ok(()),
@@ -388,7 +373,7 @@ impl Telegram104_I {
     }
     /// Applies the counter values to the outgoing telegram send/receive sequence numbers and
     /// increments the send sequence number
-    pub fn chat_sequence_apply_outgoing(&mut self, counter: &ChatSequenceCounter) {
+    pub fn chat_sequence_apply_outgoing(&mut self, counter: &mut ChatSequenceCounter) {
         self.send_sn = counter.current_tx();
         self.recv_sn = counter.current_rx();
         counter.increment_tx();
@@ -397,7 +382,7 @@ impl Telegram104_I {
     /// sequence number
     pub fn chat_sequence_validate_incoming(
         &self,
-        counter: &ChatSequenceCounter,
+        counter: &mut ChatSequenceCounter,
     ) -> Result<(), Error> {
         let current_rx = counter.current_rx();
         if self.send_sn != current_rx {

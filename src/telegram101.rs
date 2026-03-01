@@ -1,8 +1,8 @@
 use std::io::{Cursor, Read, Write};
 
 use crate::{
-    types::{datatype::DataType, DataBuffer, Iou, COT, MAX_IEC_DATA_LEN},
     Error,
+    types::{COT, DataBuffer, Iou, MAX_IEC_DATA_LEN, datatype::DataType},
 };
 
 const IEC_HEADER: u8 = 0x68;
@@ -15,6 +15,7 @@ const IEC_ACK_NEGATIVE: u8 = 0xA2;
 /// Defaults: link_address_len = 1, originator_address_len = 1, adsu_address_len = 2,
 /// iou_address_len = 3
 #[allow(clippy::module_name_repetitions)]
+#[allow(clippy::struct_field_names)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Config {
     link_address_len: u8,

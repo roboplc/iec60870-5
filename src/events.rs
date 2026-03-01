@@ -1,7 +1,7 @@
 use crate::{
     telegram101::{Config, Telegram101},
     telegram104::Telegram104_I,
-    types::{datatype::DataType, DataBuffer, COT},
+    types::{COT, DataBuffer, datatype::DataType},
 };
 
 /// Server event

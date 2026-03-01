@@ -23,7 +23,7 @@ information.
 IEC 60870-5 Rust library is a part of the [RoboPLC](https://roboplc.com)
 project.
 
-MSRV: 1.68.0
+MSRV: 1.90.0
 
 # Examples
 
@@ -107,13 +107,13 @@ if let Telegram104::I(i) = telegram {
 # Troubleshooting
 
 * As IEC 60870-5 is a complex standard, 3rd party hardware/software vendors
-usually do not implement it it full, some functionality may require additional
-development/workarounds.
+  usually do not implement it it full, some functionality may require additional
+  development/workarounds.
 
 * The library has been fully tested in pair with [Beckhoff TwinCAT 3
   TF6500](https://www.beckhoff.com/en-en/products/automation/twincat/tfxxxx-twincat-3-functions/tf6xxx-connectivity/tf6500.html)
-as well as with certain embedded implementations, used in the European Union
-power grids.
+  as well as with certain embedded implementations, used in the European Union
+  power grids.
 
 * The most common problem is that the majority of the IEC 60870-5 104 servers
   require keep-alive frames. Such can be generated either using IEC 60870-5 104
